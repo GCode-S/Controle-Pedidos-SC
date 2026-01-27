@@ -15,6 +15,8 @@ const UNIDADES = [
   { value: 'L', label: 'Litros (L)' },
   { value: 'g', label: 'Gramas (g)' },
   { value: 'kg', label: 'Quilogramas (kg)' },
+  { value: 'un', label: 'Unidade (un)' },
+  
 ]
 
 function ProdutosContent() {
@@ -236,7 +238,9 @@ function ProdutosContent() {
         </Card>
       ) : (
         <div className="space-y-3 sm:space-y-4">
-          {sortedFornecedores.map((fornecedor) => {
+          {sortedFornecedores
+            .filter(f => !selectedFornecedor || f.id === Number(selectedFornecedor))
+            .map((fornecedor) => {
             const produtosList = produtosByFornecedor.get(fornecedor.id!) || []
             const isExpanded = expandedFornecedores.has(fornecedor.id!)
             const totalProdutos = produtos.filter(p => p.idFornecedor === fornecedor.id).length
