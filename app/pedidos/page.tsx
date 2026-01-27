@@ -23,7 +23,6 @@ export default function PedidosPage() {
   const [showNameDialog, setShowNameDialog] = useState(false)
   const [userName, setUserName] = useState('')
 
-  // Set first supplier as default if none selected
   useEffect(() => {
     if (!selectedFornecedorId && fornecedores.length > 0) {
       setSelectedFornecedorId(fornecedores[0].id!)
@@ -34,7 +33,6 @@ export default function PedidosPage() {
     return fornecedores.find(f => f.id === selectedFornecedorId)
   }, [fornecedores, selectedFornecedorId])
 
-  // Filter products by selected supplier with quantity > 0
   const produtosNoPedido = useMemo(() => {
     if (!selectedFornecedorId) return []
     return produtos.filter(p => p.idFornecedor === selectedFornecedorId && p.quantidade > 0)
@@ -44,7 +42,6 @@ export default function PedidosPage() {
     return produtosNoPedido.reduce((sum, p) => sum + (p.quantidade * p.valorUnitario), 0)
   }, [produtosNoPedido])
 
-  // Count items per supplier for the selector
   const fornecedoresComPedido = useMemo(() => {
     return fornecedores.map(f => {
       const count = produtos.filter(p => p.idFornecedor === f.id && p.quantidade > 0).length
@@ -62,7 +59,6 @@ export default function PedidosPage() {
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
     
-    // Header
     doc.setFontSize(20)
     doc.setFont('helvetica', 'bold')
     doc.text('Pedido', pageWidth / 2, 20, { align: 'center' })
@@ -107,7 +103,7 @@ export default function PedidosPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center md:h-screen">
+      <div className="flex h-[calc(100vh-5rem)] items-center justify-center md:h-screen">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )
@@ -115,17 +111,17 @@ export default function PedidosPage() {
 
   if (fornecedores.length === 0) {
     return (
-      <div className="p-4 md:p-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground md:text-3xl">Pedidos</h1>
-          <p className="mt-1 text-muted-foreground">Selecione um fornecedor para visualizar o pedido</p>
+      <div className="px-3 py-4 sm:px-4 sm:py-6 md:p-8">
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Pedidos</h1>
+          <p className="mt-1 text-sm text-muted-foreground sm:text-base">Selecione um fornecedor para visualizar o pedido</p>
         </div>
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
+          <CardContent className="flex flex-col items-center justify-center px-4 py-10 sm:py-12">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <AlertCircle className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-medium text-foreground">Nenhum fornecedor cadastrado</h3>
+            <h3 className="mt-4 text-base font-medium text-foreground sm:text-lg">Nenhum fornecedor cadastrado</h3>
             <p className="mt-1 text-center text-sm text-muted-foreground">
               Cadastre um fornecedor primeiro para criar pedidos
             </p>
@@ -136,61 +132,66 @@ export default function PedidosPage() {
   }
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground md:text-3xl">Pedidos</h1>
-          <p className="mt-1 text-muted-foreground">Pedido individual por fornecedor</p>
-        </div>
+    <div className="px-3 py-4 sm:px-4 sm:py-6 md:p-8">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Pedidos</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">Pedido individual por fornecedor</p>
+      </div>
+      
+      <div className="mb-4 space-y-3 sm:mb-6">
+        <Select 
+          value={selectedFornecedorId?.toString() || ''} 
+          onValueChange={(v) => setSelectedFornecedorId(Number(v))}
+        >
+          <SelectTrigger className="h-12 w-full text-base sm:h-10 sm:text-sm">
+            <SelectValue placeholder="Selecione um fornecedor" />
+          </SelectTrigger>
+          <SelectContent>
+            {fornecedoresComPedido.map((f) => (
+              <SelectItem key={f.id} value={String(f.id)} className="text-base sm:text-sm">
+                <span className="flex items-center gap-2">
+                  {f.nome}
+                  {f.itemCount > 0 && (
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                      {f.itemCount}
+                    </span>
+                  )}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Select 
-            value={selectedFornecedorId?.toString() || ''} 
-            onValueChange={(v) => setSelectedFornecedorId(Number(v))}
-          >
-            <SelectTrigger className="w-full sm:w-64">
-              <SelectValue placeholder="Selecione um fornecedor" />
-            </SelectTrigger>
-            <SelectContent>
-              {fornecedoresComPedido.map((f) => (
-                <SelectItem key={f.id} value={String(f.id)}>
-                  <span className="flex items-center gap-2">
-                    {f.nome}
-                    {f.itemCount > 0 && (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                        {f.itemCount} {f.itemCount === 1 ? 'item' : 'itens'}
-                      </span>
-                    )}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          {produtosNoPedido.length > 0 && (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleLimparPedido} className="gap-2 bg-transparent">
-                <Trash2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Limpar</span>
-              </Button>
-              <Button onClick={() => setShowNameDialog(true)} className="gap-2">
-                <FileText className="h-4 w-4" />
-                Gerar PDF
-              </Button>
-            </div>
-          )}
-        </div>
+        {produtosNoPedido.length > 0 && (
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleLimparPedido} 
+              className="h-11 flex-1 gap-2 bg-transparent text-base sm:h-10 sm:flex-none sm:text-sm"
+            >
+              <Trash2 className="h-4 w-4" />
+              Limpar
+            </Button>
+            <Button 
+              onClick={() => setShowNameDialog(true)} 
+              className="h-11 flex-1 gap-2 text-base sm:h-10 sm:flex-none sm:text-sm"
+            >
+              <FileText className="h-4 w-4" />
+              Gerar PDF
+            </Button>
+          </div>
+        )}
       </div>
 
       {selectedFornecedor && (
-        <Card className="mb-6 border-primary/30 bg-primary/5">
-          <CardContent className="flex items-center gap-3 py-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+        <Card className="mb-4 border-primary/30 bg-primary/5 sm:mb-6">
+          <CardContent className="flex items-center gap-3 p-3 sm:py-4">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
               <Package className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <h3 className="font-medium text-foreground">{selectedFornecedor.nome}</h3>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0">
+              <h3 className="truncate text-sm font-medium text-foreground sm:text-base">{selectedFornecedor.nome}</h3>
+              <p className="text-xs text-muted-foreground sm:text-sm">
                 {produtosNoPedido.length === 0 
                   ? 'Nenhum item no pedido' 
                   : `${produtosNoPedido.length} ${produtosNoPedido.length === 1 ? 'item' : 'itens'} no pedido`
@@ -203,69 +204,53 @@ export default function PedidosPage() {
 
       {produtosNoPedido.length === 0 ? (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
+          <CardContent className="flex flex-col items-center justify-center px-4 py-10 sm:py-12">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <ShoppingCart className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-medium text-foreground">Nenhum item no pedido</h3>
+            <h3 className="mt-4 text-base font-medium text-foreground sm:text-lg">Nenhum item no pedido</h3>
             <p className="mt-1 text-center text-sm text-muted-foreground">
               Adicione quantidade aos produtos de {selectedFornecedor?.nome} para criar um pedido
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">Itens do Pedido</CardTitle>
+            <CardHeader className="px-4 py-3 sm:px-6 sm:pb-4">
+              <CardTitle className="text-base sm:text-lg">Itens do Pedido</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="border-y border-border bg-muted/50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Produto</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Quantidade</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Valor Unit.</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium text-muted-foreground">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {produtosNoPedido.map((produto) => (
-                      <tr key={produto.id} className="transition-colors hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium text-foreground">{produto.nome}</td>
-                        <td className="px-4 py-3 text-foreground">{produto.quantidade} {produto.unidade}</td>
-                        <td className="px-4 py-3 text-foreground">{formatCurrency(produto.valorUnitario)}</td>
-                        <td className="px-4 py-3 text-right font-medium text-primary">
-                          {formatCurrency(produto.quantidade * produto.valorUnitario)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="divide-y divide-border">
+                {produtosNoPedido.map((produto) => (
+                  <div key={produto.id} className="flex items-center justify-between p-3 sm:p-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
+                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground sm:text-sm">
+                        <span>{produto.quantidade} {produto.unidade}</span>
+                        <span>{formatCurrency(produto.valorUnitario)}</span>
+                      </div>
+                    </div>
+                    <p className="ml-3 text-sm font-semibold text-primary sm:text-base">
+                      {formatCurrency(produto.quantidade * produto.valorUnitario)}
+                    </p>
+                  </div>
+                ))}
               </div>
             </CardContent>
-            <CardFooter className="justify-end border-t border-border bg-muted/30 py-3">
-              <p className="text-sm font-medium text-foreground">
-                Total: <span className="text-lg text-primary">{formatCurrency(total)}</span>
-              </p>
+            <CardFooter className="justify-between border-t border-border bg-muted/30 px-4 py-3 sm:px-6">
+              <p className="text-sm font-medium text-muted-foreground">Total</p>
+              <p className="text-lg font-bold text-primary sm:text-xl">{formatCurrency(total)}</p>
             </CardFooter>
-          </Card>
-
-          <Card className="border-primary/50 bg-primary/5">
-            <CardContent className="flex items-center justify-between py-6">
-              <p className="text-lg font-semibold text-foreground">Total do Pedido - {selectedFornecedor?.nome}</p>
-              <p className="text-2xl font-bold text-primary">{formatCurrency(total)}</p>
-            </CardContent>
           </Card>
         </div>
       )}
 
       <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
-        <DialogContent>
+        <DialogContent className="mx-4 max-w-md rounded-lg sm:mx-auto">
           <DialogHeader>
-            <DialogTitle>Gerar PDF do Pedido</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg">Gerar PDF do Pedido</DialogTitle>
+            <DialogDescription className="text-sm">
               Pedido do fornecedor: {selectedFornecedor?.nome}
             </DialogDescription>
           </DialogHeader>
@@ -276,13 +261,22 @@ export default function PedidosPage() {
               onChange={(e) => setUserName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleGeneratePDF()}
               autoFocus
+              className="h-12 text-base sm:h-10 sm:text-sm"
             />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowNameDialog(false)} className="bg-transparent">
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowNameDialog(false)} 
+              className="h-11 w-full bg-transparent text-base sm:h-10 sm:w-auto sm:text-sm"
+            >
               Cancelar
             </Button>
-            <Button onClick={handleGeneratePDF} disabled={!userName.trim()}>
+            <Button 
+              onClick={handleGeneratePDF} 
+              disabled={!userName.trim()}
+              className="h-11 w-full text-base sm:h-10 sm:w-auto sm:text-sm"
+            >
               Gerar PDF
             </Button>
           </DialogFooter>

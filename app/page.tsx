@@ -5,7 +5,7 @@ import { useStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Pencil, Trash2, Check, X, Users, Package } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, Users, Package, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 export default function FornecedoresPage() {
@@ -51,35 +51,35 @@ export default function FornecedoresPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center md:h-screen">
+      <div className="flex h-[calc(100vh-5rem)] items-center justify-center md:h-screen">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground md:text-3xl">Fornecedores</h1>
-        <p className="mt-1 text-muted-foreground">Gerencie seus fornecedores e seus produtos</p>
+    <div className="px-3 py-4 sm:px-4 sm:py-6 md:p-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Fornecedores</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">Gerencie seus fornecedores</p>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Adicionar Fornecedor</CardTitle>
+      <Card className="mb-4 md:mb-6">
+        <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
+          <CardTitle className="text-base sm:text-lg">Adicionar Fornecedor</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-3">
+        <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+          <div className="flex gap-2 sm:gap-3">
             <Input
               placeholder="Nome do fornecedor"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-              className="flex-1"
+              className="h-11 flex-1 text-base sm:h-10 sm:text-sm"
             />
-            <Button onClick={handleAdd} className="gap-2">
+            <Button onClick={handleAdd} className="h-11 gap-2 px-4 sm:h-10 sm:px-4">
               <Plus className="h-4 w-4" />
-              Adicionar
+              <span className="hidden sm:inline">Adicionar</span>
             </Button>
           </div>
         </CardContent>
@@ -87,22 +87,22 @@ export default function FornecedoresPage() {
 
       {fornecedores.length === 0 ? (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
+          <CardContent className="flex flex-col items-center justify-center px-4 py-10 sm:py-12">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Users className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-medium text-foreground">Nenhum fornecedor</h3>
+            <h3 className="mt-4 text-base font-medium text-foreground sm:text-lg">Nenhum fornecedor</h3>
             <p className="mt-1 text-center text-sm text-muted-foreground">
               Adicione seu primeiro fornecedor para comecar
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0 lg:grid-cols-3">
           {fornecedores.map((fornecedor) => (
             <Card 
               key={fornecedor.id} 
-              className="group transition-all duration-200 hover:border-primary/50 hover:shadow-md"
+              className="transition-all duration-200 hover:border-primary/50 active:scale-[0.98] sm:hover:shadow-md"
             >
               <CardContent className="p-4">
                 {editingId === fornecedor.id ? (
@@ -115,49 +115,51 @@ export default function FornecedoresPage() {
                         if (e.key === 'Escape') handleCancelEdit()
                       }}
                       autoFocus
-                      className="flex-1"
+                      className="h-11 flex-1 text-base sm:h-10 sm:text-sm"
                     />
-                    <Button size="icon" variant="ghost" onClick={handleSaveEdit}>
-                      <Check className="h-4 w-4 text-primary" />
+                    <Button size="icon" variant="ghost" onClick={handleSaveEdit} className="h-11 w-11 sm:h-10 sm:w-10">
+                      <Check className="h-5 w-5 text-primary sm:h-4 sm:w-4" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={handleCancelEdit}>
-                      <X className="h-4 w-4 text-muted-foreground" />
+                    <Button size="icon" variant="ghost" onClick={handleCancelEdit} className="h-11 w-11 sm:h-10 sm:w-10">
+                      <X className="h-5 w-5 text-muted-foreground sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-foreground">{fornecedor.nome}</h3>
-                      <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-                        <Package className="h-4 w-4" />
-                        <span>{getProductCount(fornecedor.id!)} produtos</span>
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-base font-medium text-foreground sm:text-sm">{fornecedor.nome}</h3>
+                        <div className="mt-1.5 flex items-center gap-1 text-sm text-muted-foreground sm:mt-2 sm:text-sm">
+                          <Package className="h-4 w-4 flex-shrink-0" />
+                          <span>{getProductCount(fornecedor.id!)} produtos</span>
+                        </div>
+                      </div>
+                      <div className="ml-2 flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleEdit(fornecedor.id!, fornecedor.nome)}
+                          className="h-10 w-10 sm:h-9 sm:w-9"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => handleDelete(fornecedor.id!)}
+                          className="h-10 w-10 hover:text-destructive sm:h-9 sm:w-9"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleEdit(fornecedor.id!, fornecedor.nome)}
-                      >
-                        <Pencil className="h-4 w-4" />
+                    <Link href={`/produtos?fornecedor=${fornecedor.id}`}>
+                      <Button variant="secondary" className="mt-3 h-11 w-full gap-2 sm:mt-4 sm:h-9" size="sm">
+                        Ver Produtos
+                        <ChevronRight className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDelete(fornecedor.id!)}
-                        className="hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {editingId !== fornecedor.id && (
-                  <Link href={`/produtos?fornecedor=${fornecedor.id}`}>
-                    <Button variant="secondary" className="mt-4 w-full" size="sm">
-                      Ver Produtos
-                    </Button>
-                  </Link>
+                    </Link>
+                  </>
                 )}
               </CardContent>
             </Card>

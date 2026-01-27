@@ -115,32 +115,32 @@ function ProdutosContent() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center md:h-screen">
+      <div className="flex h-[calc(100vh-5rem)] items-center justify-center md:h-screen">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground md:text-3xl">Produtos</h1>
-        <p className="mt-1 text-muted-foreground">Gerencie os produtos de cada fornecedor</p>
+    <div className="px-3 py-4 sm:px-4 sm:py-6 md:p-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Produtos</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">Gerencie os produtos de cada fornecedor</p>
       </div>
 
-      <Card className="mb-6">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Adicionar Produto</CardTitle>
+      <Card className="mb-4 md:mb-6">
+        <CardHeader className="px-4 py-3 sm:px-6 sm:py-4">
+          <CardTitle className="text-base sm:text-lg">Adicionar Produto</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
+          <div className="space-y-3">
             <Select value={selectedFornecedor} onValueChange={setSelectedFornecedor}>
-              <SelectTrigger>
-                <SelectValue placeholder="Fornecedor" />
+              <SelectTrigger className="h-11 text-base sm:h-10 sm:text-sm">
+                <SelectValue placeholder="Selecione o fornecedor" />
               </SelectTrigger>
               <SelectContent>
                 {fornecedores.map((f) => (
-                  <SelectItem key={f.id} value={String(f.id)}>
+                  <SelectItem key={f.id} value={String(f.id)} className="text-base sm:text-sm">
                     {f.nome}
                   </SelectItem>
                 ))}
@@ -151,42 +151,48 @@ function ProdutosContent() {
               placeholder="Nome do produto"
               value={newProduct.nome}
               onChange={(e) => setNewProduct(prev => ({ ...prev, nome: e.target.value }))}
+              className="h-11 text-base sm:h-10 sm:text-sm"
             />
             
-            <Input
-              type="number"
-              placeholder="Quantidade"
-              value={newProduct.quantidade}
-              onChange={(e) => setNewProduct(prev => ({ ...prev, quantidade: e.target.value }))}
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                type="number"
+                placeholder="Quantidade"
+                value={newProduct.quantidade}
+                onChange={(e) => setNewProduct(prev => ({ ...prev, quantidade: e.target.value }))}
+                className="h-11 text-base sm:h-10 sm:text-sm"
+              />
+              
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="Valor R$"
+                value={newProduct.valorUnitario}
+                onChange={(e) => setNewProduct(prev => ({ ...prev, valorUnitario: e.target.value }))}
+                className="h-11 text-base sm:h-10 sm:text-sm"
+              />
+            </div>
             
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="Valor unitario"
-              value={newProduct.valorUnitario}
-              onChange={(e) => setNewProduct(prev => ({ ...prev, valorUnitario: e.target.value }))}
-            />
-            
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Select 
                 value={newProduct.unidade} 
                 onValueChange={(v) => setNewProduct(prev => ({ ...prev, unidade: v as Produto['unidade'] }))}
               >
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="h-11 flex-1 text-base sm:h-10 sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {UNIDADES.map((u) => (
-                    <SelectItem key={u.value} value={u.value}>
+                    <SelectItem key={u.value} value={u.value} className="text-base sm:text-sm">
                       {u.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               
-              <Button onClick={handleAdd} className="gap-2">
+              <Button onClick={handleAdd} className="h-11 gap-2 px-4 sm:h-10">
                 <Plus className="h-4 w-4" />
+                <span className="sm:hidden">Add</span>
                 <span className="hidden sm:inline">Adicionar</span>
               </Button>
             </div>
@@ -196,18 +202,18 @@ function ProdutosContent() {
 
       {fornecedores.length === 0 ? (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
+          <CardContent className="flex flex-col items-center justify-center px-4 py-10 sm:py-12">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Package className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-medium text-foreground">Nenhum fornecedor cadastrado</h3>
+            <h3 className="mt-4 text-base font-medium text-foreground sm:text-lg">Nenhum fornecedor cadastrado</h3>
             <p className="mt-1 text-center text-sm text-muted-foreground">
               Cadastre um fornecedor primeiro para adicionar produtos
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {fornecedores.map((fornecedor) => {
             const produtosList = produtosByFornecedor.get(fornecedor.id!) || []
             const isExpanded = expandedFornecedores.has(fornecedor.id!)
@@ -217,109 +223,104 @@ function ProdutosContent() {
                 <button
                   type="button"
                   onClick={() => toggleFornecedor(fornecedor.id!)}
-                  className="flex w-full items-center justify-between p-4 text-left transition-colors hover:bg-accent/50"
+                  className="flex w-full items-center justify-between p-3 text-left transition-colors hover:bg-accent/50 active:bg-accent sm:p-4"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <Package className="h-5 w-5 text-primary" />
+                    <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:h-10 sm:w-10">
+                      <Package className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-foreground">{fornecedor.nome}</h3>
-                      <p className="text-sm text-muted-foreground">{produtosList.length} produtos</p>
+                      <h3 className="text-sm font-medium text-foreground sm:text-base">{fornecedor.nome}</h3>
+                      <p className="text-xs text-muted-foreground sm:text-sm">{produtosList.length} produtos</p>
                     </div>
                   </div>
                   {isExpanded ? (
-                    <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                    <ChevronUp className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                    <ChevronDown className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
                   )}
                 </button>
                 
                 {isExpanded && (
                   <div className="border-t border-border">
                     {produtosList.length === 0 ? (
-                      <div className="p-6 text-center text-sm text-muted-foreground">
+                      <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                         Nenhum produto cadastrado para este fornecedor
                       </div>
                     ) : (
                       <div className="divide-y divide-border">
                         {produtosList.map((produto) => (
-                          <div key={produto.id} className="p-4">
+                          <div key={produto.id} className="p-3 sm:p-4">
                             {editingId === produto.id ? (
-                              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                              <div className="space-y-3">
                                 <Input
                                   value={editingProduct.nome || ''}
                                   onChange={(e) => setEditingProduct(prev => ({ ...prev, nome: e.target.value }))}
                                   placeholder="Nome"
                                   autoFocus
+                                  className="h-11 text-base sm:h-10 sm:text-sm"
                                 />
-                                <Input
-                                  type="number"
-                                  value={editingProduct.quantidade || ''}
-                                  onChange={(e) => setEditingProduct(prev => ({ ...prev, quantidade: Number(e.target.value) }))}
-                                  placeholder="Quantidade"
-                                />
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={editingProduct.valorUnitario || ''}
-                                  onChange={(e) => setEditingProduct(prev => ({ ...prev, valorUnitario: Number(e.target.value) }))}
-                                  placeholder="Valor"
-                                />
-                                <Select
-                                  value={editingProduct.unidade || 'cx'}
-                                  onValueChange={(v) => setEditingProduct(prev => ({ ...prev, unidade: v as Produto['unidade'] }))}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {UNIDADES.map((u) => (
-                                      <SelectItem key={u.value} value={u.value}>
-                                        {u.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <Input
+                                    type="number"
+                                    value={editingProduct.quantidade || ''}
+                                    onChange={(e) => setEditingProduct(prev => ({ ...prev, quantidade: Number(e.target.value) }))}
+                                    placeholder="Qtd"
+                                    className="h-11 text-base sm:h-10 sm:text-sm"
+                                  />
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={editingProduct.valorUnitario || ''}
+                                    onChange={(e) => setEditingProduct(prev => ({ ...prev, valorUnitario: Number(e.target.value) }))}
+                                    placeholder="Valor"
+                                    className="h-11 text-base sm:h-10 sm:text-sm"
+                                  />
+                                </div>
                                 <div className="flex gap-2">
-                                  <Button size="sm" onClick={handleSaveEdit} className="gap-1">
+                                  <Select
+                                    value={editingProduct.unidade || 'cx'}
+                                    onValueChange={(v) => setEditingProduct(prev => ({ ...prev, unidade: v as Produto['unidade'] }))}
+                                  >
+                                    <SelectTrigger className="h-11 flex-1 text-base sm:h-10 sm:text-sm">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {UNIDADES.map((u) => (
+                                        <SelectItem key={u.value} value={u.value} className="text-base sm:text-sm">
+                                          {u.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <Button size="sm" onClick={handleSaveEdit} className="h-11 gap-1 px-4 sm:h-10">
                                     <Check className="h-4 w-4" />
-                                    Salvar
+                                    <span className="hidden sm:inline">Salvar</span>
                                   </Button>
-                                  <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                                  <Button size="sm" variant="outline" onClick={handleCancelEdit} className="h-11 w-11 bg-transparent sm:h-10 sm:w-10">
                                     <X className="h-4 w-4" />
                                   </Button>
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex items-center justify-between">
-                                <div className="grid flex-1 gap-1 sm:grid-cols-4 sm:gap-4">
-                                  <div>
-                                    <p className="text-xs text-muted-foreground">Produto</p>
-                                    <p className="font-medium text-foreground">{produto.nome}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-muted-foreground">Quantidade</p>
-                                    <p className="font-medium text-foreground">{produto.quantidade} {produto.unidade}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-muted-foreground">Valor Unitario</p>
-                                    <p className="font-medium text-foreground">{formatCurrency(produto.valorUnitario)}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs text-muted-foreground">Total</p>
-                                    <p className="font-medium text-primary">{formatCurrency(produto.quantidade * produto.valorUnitario)}</p>
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1 space-y-2">
+                                  <p className="text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
+                                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground sm:text-sm">
+                                    <span>Qtd: <span className="font-medium text-foreground">{produto.quantidade} {produto.unidade}</span></span>
+                                    <span>Unit: <span className="font-medium text-foreground">{formatCurrency(produto.valorUnitario)}</span></span>
+                                    <span>Total: <span className="font-medium text-primary">{formatCurrency(produto.quantidade * produto.valorUnitario)}</span></span>
                                   </div>
                                 </div>
-                                <div className="ml-4 flex gap-1">
-                                  <Button size="icon" variant="ghost" onClick={() => handleEdit(produto)}>
+                                <div className="flex gap-1">
+                                  <Button size="icon" variant="ghost" onClick={() => handleEdit(produto)} className="h-10 w-10 sm:h-9 sm:w-9">
                                     <Pencil className="h-4 w-4" />
                                   </Button>
                                   <Button
                                     size="icon"
                                     variant="ghost"
                                     onClick={() => handleDelete(produto.id!)}
-                                    className="hover:text-destructive"
+                                    className="h-10 w-10 hover:text-destructive sm:h-9 sm:w-9"
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>
@@ -344,7 +345,7 @@ function ProdutosContent() {
 export default function ProdutosPage() {
   return (
     <Suspense fallback={
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center md:h-screen">
+      <div className="flex h-[calc(100vh-5rem)] items-center justify-center md:h-screen">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     }>

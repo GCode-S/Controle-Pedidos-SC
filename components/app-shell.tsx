@@ -4,7 +4,7 @@ import React from "react"
 
 import { useEffect } from 'react'
 import { AppSidebar } from './app-sidebar'
-import { MobileHeader } from './mobile-header'
+import { MobileNav } from './mobile-nav'
 import { useStore } from '@/lib/store'
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -17,9 +17,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background transition-colors">
       <AppSidebar />
-      <MobileHeader />
+      <MobileNav />
       <main className="md:pl-64">
-        <div className="min-h-screen pt-14 md:pt-0">
+        <div className="min-h-screen pb-20 md:pb-0">
           {children}
         </div>
       </main>

@@ -50,60 +50,60 @@ export default function TrocasPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center md:h-screen">
+      <div className="flex h-[calc(100vh-5rem)] items-center justify-center md:h-screen">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="p-4 md:p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground md:text-3xl">Trocas</h1>
-        <p className="mt-1 text-muted-foreground">Produtos danificados ou para troca</p>
+    <div className="px-3 py-4 sm:px-4 sm:py-6 md:p-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-xl font-bold text-foreground sm:text-2xl md:text-3xl">Trocas</h1>
+        <p className="mt-1 text-sm text-muted-foreground sm:text-base">Produtos danificados ou para troca</p>
       </div>
 
       {produtosComTroca.length === 0 ? (
-        <Card className="mb-8 border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12">
+        <Card className="mb-6 border-dashed sm:mb-8">
+          <CardContent className="flex flex-col items-center justify-center px-4 py-10 sm:py-12">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <RefreshCw className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-lg font-medium text-foreground">Nenhum item para troca</h3>
+            <h3 className="mt-4 text-base font-medium text-foreground sm:text-lg">Nenhum item para troca</h3>
             <p className="mt-1 text-center text-sm text-muted-foreground">
               Adicione quantidade de troca aos produtos abaixo
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="mb-8 space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Itens para Troca</h2>
+        <div className="mb-6 space-y-3 sm:mb-8 sm:space-y-4">
+          <h2 className="text-base font-semibold text-foreground sm:text-lg">Itens para Troca</h2>
           {Array.from(trocasByFornecedor).map(([fornecedorId, produtosList]) => (
             <Card key={fornecedorId}>
-              <CardHeader className="pb-4">
+              <CardHeader className="px-4 py-3 sm:px-6 sm:pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
-                    <RefreshCw className="h-5 w-5 text-destructive" />
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-destructive/10 sm:h-10 sm:w-10">
+                    <RefreshCw className="h-4 w-4 text-destructive sm:h-5 sm:w-5" />
                   </div>
-                  <CardTitle className="text-lg">{getFornecedorNome(fornecedorId)}</CardTitle>
+                  <CardTitle className="text-base sm:text-lg">{getFornecedorNome(fornecedorId)}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-border">
                   {produtosList.map((produto) => (
-                    <div key={produto.id} className="flex items-center justify-between p-4">
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{produto.nome}</p>
-                        <p className="text-sm text-muted-foreground">
+                    <div key={produto.id} className="flex items-center justify-between gap-3 p-3 sm:p-4">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
+                        <p className="text-xs text-muted-foreground sm:text-sm">
                           {formatCurrency(produto.valorUnitario)} / {produto.unidade}
                         </p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center">
                           <Button
                             size="icon"
                             variant="outline"
-                            className="h-8 w-8 bg-transparent"
+                            className="h-10 w-10 rounded-r-none bg-transparent sm:h-8 sm:w-8"
                             onClick={() => handleUpdateTroca(produto.id!, (produto.quantidadeTroca ?? 0) - 1)}
                           >
                             <Minus className="h-4 w-4" />
@@ -112,12 +112,12 @@ export default function TrocasPage() {
                             type="number"
                             value={produto.quantidadeTroca ?? 0}
                             onChange={(e) => handleUpdateTroca(produto.id!, Number(e.target.value))}
-                            className="h-8 w-16 text-center"
+                            className="h-10 w-14 rounded-none border-x-0 text-center text-base sm:h-8 sm:w-12 sm:text-sm"
                           />
                           <Button
                             size="icon"
                             variant="outline"
-                            className="h-8 w-8 bg-transparent"
+                            className="h-10 w-10 rounded-l-none bg-transparent sm:h-8 sm:w-8"
                             onClick={() => handleUpdateTroca(produto.id!, (produto.quantidadeTroca ?? 0) + 1)}
                           >
                             <Plus className="h-4 w-4" />
@@ -126,7 +126,7 @@ export default function TrocasPage() {
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          className="h-10 w-10 text-destructive hover:bg-destructive/10 hover:text-destructive sm:h-8 sm:w-8"
                           onClick={() => handleRemoveTroca(produto.id!)}
                         >
                           <X className="h-4 w-4" />
@@ -142,30 +142,33 @@ export default function TrocasPage() {
       )}
 
       {produtosSemTroca.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Adicionar Troca</h2>
+        <div className="space-y-3 sm:space-y-4">
+          <h2 className="text-base font-semibold text-foreground sm:text-lg">Adicionar Troca</h2>
           <Card>
             <CardContent className="p-0">
-              <div className="max-h-96 divide-y divide-border overflow-y-auto">
+              <div className="max-h-80 divide-y divide-border overflow-y-auto sm:max-h-96">
                 {produtosSemTroca.map((produto) => (
-                  <div key={produto.id} className="flex items-center justify-between p-4 transition-colors hover:bg-muted/30">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted">
+                  <div 
+                    key={produto.id} 
+                    className="flex items-center justify-between gap-3 p-3 transition-colors active:bg-muted/50 sm:p-4 sm:hover:bg-muted/30"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted sm:h-8 sm:w-8">
                         <Package className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      <div>
-                        <p className="font-medium text-foreground">{produto.nome}</p>
-                        <p className="text-xs text-muted-foreground">{getFornecedorNome(produto.idFornecedor)}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">{produto.nome}</p>
+                        <p className="truncate text-xs text-muted-foreground">{getFornecedorNome(produto.idFornecedor)}</p>
                       </div>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="gap-1 bg-transparent"
+                      className="h-10 gap-1 bg-transparent px-3 text-sm sm:h-8 sm:px-3"
                       onClick={() => handleAddTroca(produto.id!, produto.quantidadeTroca ?? 0)}
                     >
                       <Plus className="h-4 w-4" />
-                      Adicionar
+                      <span className="hidden sm:inline">Adicionar</span>
                     </Button>
                   </div>
                 ))}
