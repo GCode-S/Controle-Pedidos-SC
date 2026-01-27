@@ -172,8 +172,9 @@ export default function ConfiguracoesPage() {
           </CardHeader>
           <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
             <div className="space-y-2 text-xs text-muted-foreground sm:space-y-3 sm:text-sm">
+              <p><strong className="text-foreground">Aplicativo:</strong> GCode-S - Controle de Pedidos</p>
               <p><strong className="text-foreground">Versao:</strong> 1.0.0</p>
-              <p><strong className="text-foreground">Criador:</strong> <a href="https://github.com/GCode-S">GCode-S</a></p>
+              <p><strong className="text-foreground">Criador:</strong> <a href="https://github.com/GCode-S"><u>GCode-S</u></a></p>
               <p><strong className="text-foreground">Tecnologias:</strong> Next.js, TypeScript, Tailwind CSS, Dexie.js</p>
               <p className="pt-2">
                 Este aplicativo funciona 100% no navegador, sem necessidade de conexao com servidores externos.

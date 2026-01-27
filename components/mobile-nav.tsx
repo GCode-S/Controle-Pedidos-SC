@@ -17,8 +17,8 @@ export function MobileNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 backdrop-blur-lg md:hidden safe-area-bottom">
-      <div className="flex h-16 items-center justify-around px-2">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 backdrop-blur-xl md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="flex items-stretch justify-around">
         {navItems.map((item) => {
           const isActive = pathname === item.href || 
             (item.href !== '/' && pathname.startsWith(item.href))
@@ -27,24 +27,24 @@ export function MobileNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-all duration-200 active:scale-95',
+                'flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 py-2 transition-all duration-200 active:scale-95 active:bg-accent/50',
                 isActive
                   ? 'text-primary'
-                  : 'text-muted-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
               )}
             >
               <div className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-200',
-                isActive && 'bg-primary/15'
+                'flex h-7 w-7 items-center justify-center rounded-lg transition-all duration-200',
+                isActive && 'bg-primary/15 scale-110'
               )}>
                 <item.icon className={cn(
-                  'h-5 w-5 transition-all duration-200',
-                  isActive && 'scale-110'
+                  'h-[22px] w-[22px] transition-all duration-200',
+                  isActive && 'stroke-[2.5px]'
                 )} />
               </div>
               <span className={cn(
-                'text-[10px] font-medium leading-none',
-                isActive && 'text-primary'
+                'text-[11px] font-medium leading-none tracking-tight',
+                isActive && 'font-semibold'
               )}>
                 {item.label}
               </span>

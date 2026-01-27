@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog'
-import { ShoppingCart, FileText, Trash2, Package, AlertCircle } from 'lucide-react'
+import { ShoppingCart, FileText, Trash2, Package, AlertCircle, Search, Minus, Plus, Pencil, Check, X } from 'lucide-react'
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -18,10 +18,15 @@ export default function PedidosPage() {
     loading, 
     selectedFornecedorId, 
     setSelectedFornecedorId,
-    limparPedidoByFornecedor 
+    limparPedidoByFornecedor,
+    updateProduto
   } = useStore()
   const [showNameDialog, setShowNameDialog] = useState(false)
   const [userName, setUserName] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingQtd, setEditingQtd] = useState<number>(0)
+  const [editingValor, setEditingValor] = useState<number>(0)
 
   useEffect(() => {
     if (!selectedFornecedorId && fornecedores.length > 0) {
@@ -29,28 +34,67 @@ export default function PedidosPage() {
     }
   }, [fornecedores, selectedFornecedorId, setSelectedFornecedorId])
 
+  const sortedFornecedores = useMemo(() => {
+    return [...fornecedores].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+  }, [fornecedores])
+
   const selectedFornecedor = useMemo(() => {
     return fornecedores.find(f => f.id === selectedFornecedorId)
   }, [fornecedores, selectedFornecedorId])
 
   const produtosNoPedido = useMemo(() => {
     if (!selectedFornecedorId) return []
-    return produtos.filter(p => p.idFornecedor === selectedFornecedorId && p.quantidade > 0)
+    return produtos
+      .filter(p => p.idFornecedor === selectedFornecedorId && p.quantidade > 0)
+      .filter(p => p.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+  }, [produtos, selectedFornecedorId, searchTerm])
+
+  const allProdutosNoPedido = useMemo(() => {
+    if (!selectedFornecedorId) return []
+    return produtos
+      .filter(p => p.idFornecedor === selectedFornecedorId && p.quantidade > 0)
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
   }, [produtos, selectedFornecedorId])
 
   const total = useMemo(() => {
-    return produtosNoPedido.reduce((sum, p) => sum + (p.quantidade * p.valorUnitario), 0)
-  }, [produtosNoPedido])
+    return allProdutosNoPedido.reduce((sum, p) => sum + (p.quantidade * p.valorUnitario), 0)
+  }, [allProdutosNoPedido])
 
   const fornecedoresComPedido = useMemo(() => {
-    return fornecedores.map(f => {
+    return sortedFornecedores.map(f => {
       const count = produtos.filter(p => p.idFornecedor === f.id && p.quantidade > 0).length
       return { ...f, itemCount: count }
     })
-  }, [fornecedores, produtos])
+  }, [sortedFornecedores, produtos])
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+  }
+
+  const handleQuickEdit = (id: number, qtd: number, valor: number) => {
+    setEditingId(id)
+    setEditingQtd(qtd)
+    setEditingValor(valor)
+  }
+
+  const handleSaveQuickEdit = async () => {
+    if (editingId) {
+      await updateProduto(editingId, { 
+        quantidade: Math.max(0, editingQtd),
+        valorUnitario: Math.max(0, editingValor)
+      })
+      setEditingId(null)
+    }
+  }
+
+  const handleCancelQuickEdit = () => {
+    setEditingId(null)
+  }
+
+  const handleQuickQtdChange = async (id: number, currentQtd: number, delta: number) => {
+    const newQtd = Math.max(0, currentQtd + delta)
+    await updateProduto(id, { quantidade: newQtd })
   }
 
   const handleGeneratePDF = () => {
@@ -58,7 +102,9 @@ export default function PedidosPage() {
 
     const doc = new jsPDF()
     const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
     
+    // Header
     doc.setFontSize(20)
     doc.setFont('helvetica', 'bold')
     doc.text('Pedido', pageWidth / 2, 20, { align: 'center' })
@@ -69,9 +115,7 @@ export default function PedidosPage() {
     doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 42)
     doc.text(`Fornecedor: ${selectedFornecedor.nome}`, 14, 49)
 
-    const yPosition = 60
-
-    const tableData = produtosNoPedido.map(p => [
+    const tableData = allProdutosNoPedido.map(p => [
       p.nome,
       `${p.quantidade} ${p.unidade}`,
       formatCurrency(p.valorUnitario),
@@ -79,14 +123,46 @@ export default function PedidosPage() {
     ])
 
     autoTable(doc, {
-      startY: yPosition,
+      startY: 60,
       head: [['Produto', 'Quantidade', 'Valor Unit.', 'Subtotal']],
       body: tableData,
       foot: [['', '', 'Total:', formatCurrency(total)]],
       theme: 'striped',
-      headStyles: { fillColor: [34, 139, 34] },
-      footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
-      margin: { left: 14, right: 14 },
+      headStyles: { fillColor: [34, 139, 34], fontSize: 10 },
+      bodyStyles: { fontSize: 9 },
+      footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 10 },
+      margin: { left: 14, right: 14, bottom: 20 },
+      styles: { cellPadding: 3, overflow: 'linebreak' },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 35, halign: 'center' },
+        2: { cellWidth: 35, halign: 'right' },
+        3: { cellWidth: 35, halign: 'right' }
+      },
+      didDrawPage: (data) => {
+        // Footer with page numbers
+        const pageNumber = doc.getCurrentPageInfo().pageNumber
+        const totalPages = doc.getNumberOfPages()
+        doc.setFontSize(8)
+        doc.setTextColor(128)
+        doc.text(
+          `Pagina ${pageNumber} de ${totalPages}`,
+          pageWidth / 2,
+          pageHeight - 10,
+          { align: 'center' }
+        )
+        doc.text(
+          `GCode-S - Controle de Pedidos`,
+          14,
+          pageHeight - 10
+        )
+        doc.text(
+          new Date().toLocaleString('pt-BR'),
+          pageWidth - 14,
+          pageHeight - 10,
+          { align: 'right' }
+        )
+      }
     })
 
     doc.save(`pedido-${selectedFornecedor.nome.replace(/\s+/g, '-')}-${userName.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -162,7 +238,7 @@ export default function PedidosPage() {
           </SelectContent>
         </Select>
         
-        {produtosNoPedido.length > 0 && (
+        {allProdutosNoPedido.length > 0 && (
           <div className="flex gap-2">
             <Button 
               variant="outline" 
@@ -192,9 +268,9 @@ export default function PedidosPage() {
             <div className="min-w-0">
               <h3 className="truncate text-sm font-medium text-foreground sm:text-base">{selectedFornecedor.nome}</h3>
               <p className="text-xs text-muted-foreground sm:text-sm">
-                {produtosNoPedido.length === 0 
+                {allProdutosNoPedido.length === 0 
                   ? 'Nenhum item no pedido' 
-                  : `${produtosNoPedido.length} ${produtosNoPedido.length === 1 ? 'item' : 'itens'} no pedido`
+                  : `${allProdutosNoPedido.length} ${allProdutosNoPedido.length === 1 ? 'item' : 'itens'} no pedido`
                 }
               </p>
             </div>
@@ -202,7 +278,19 @@ export default function PedidosPage() {
         </Card>
       )}
 
-      {produtosNoPedido.length === 0 ? (
+      {allProdutosNoPedido.length > 0 && (
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar itens do pedido..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="h-11 pl-10 text-base sm:h-10 sm:text-sm"
+          />
+        </div>
+      )}
+
+      {allProdutosNoPedido.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center px-4 py-10 sm:py-12">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
@@ -223,17 +311,87 @@ export default function PedidosPage() {
             <CardContent className="p-0">
               <div className="divide-y divide-border">
                 {produtosNoPedido.map((produto) => (
-                  <div key={produto.id} className="flex items-center justify-between p-3 sm:p-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
-                      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground sm:text-sm">
-                        <span>{produto.quantidade} {produto.unidade}</span>
-                        <span>{formatCurrency(produto.valorUnitario)}</span>
+                  <div key={produto.id} className="p-3 sm:p-4">
+                    {editingId === produto.id ? (
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="mb-1 block text-xs text-muted-foreground">Quantidade</label>
+                            <Input
+                              type="number"
+                              value={editingQtd}
+                              onChange={(e) => setEditingQtd(Number(e.target.value))}
+                              className="h-11 text-base sm:h-10 sm:text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-xs text-muted-foreground">Valor Unit. (R$)</label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              value={editingValor}
+                              onChange={(e) => setEditingValor(Number(e.target.value))}
+                              className="h-11 text-base sm:h-10 sm:text-sm"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button onClick={handleSaveQuickEdit} className="h-11 flex-1 gap-1 sm:h-10">
+                            <Check className="h-4 w-4" />
+                            Salvar
+                          </Button>
+                          <Button variant="outline" onClick={handleCancelQuickEdit} className="h-11 flex-1 gap-1 bg-transparent sm:h-10">
+                            <X className="h-4 w-4" />
+                            Cancelar
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                    <p className="ml-3 text-sm font-semibold text-primary sm:text-base">
-                      {formatCurrency(produto.quantidade * produto.valorUnitario)}
-                    </p>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground sm:text-sm">
+                            <span>{produto.quantidade} {produto.unidade}</span>
+                            <span>{formatCurrency(produto.valorUnitario)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center">
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-9 w-9 rounded-r-none bg-transparent sm:h-8 sm:w-8"
+                              onClick={() => handleQuickQtdChange(produto.id!, produto.quantidade, -1)}
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </Button>
+                            <div className="flex h-9 min-w-[2.5rem] items-center justify-center border-y border-input px-2 text-sm font-medium sm:h-8">
+                              {produto.quantidade}
+                            </div>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-9 w-9 rounded-l-none bg-transparent sm:h-8 sm:w-8"
+                              onClick={() => handleQuickQtdChange(produto.id!, produto.quantidade, 1)}
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-9 w-9 sm:h-8 sm:w-8"
+                            onClick={() => handleQuickEdit(produto.id!, produto.quantidade, produto.valorUnitario)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <p className="min-w-[4.5rem] text-right text-sm font-semibold text-primary sm:min-w-[5rem] sm:text-base">
+                            {formatCurrency(produto.quantidade * produto.valorUnitario)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

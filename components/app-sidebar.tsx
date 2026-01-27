@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -22,11 +23,15 @@ export function AppSidebar() {
   return (
     <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r border-border bg-card transition-colors md:block">
       <div className="flex h-full flex-col">
-        <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Package className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-semibold text-foreground">Pedidos</span>
+        <div className="flex h-16 items-center gap-3 border-b border-border px-4">
+          <Image 
+            src="/logo.png" 
+            alt="GCode-S Logo" 
+            width={40} 
+            height={40} 
+            className="rounded-lg"
+          />
+          <span className="text-lg font-semibold text-foreground">GCode-S</span>
         </div>
         
         <nav className="flex-1 space-y-1 p-4">

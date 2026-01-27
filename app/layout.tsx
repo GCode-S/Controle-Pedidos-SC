@@ -22,31 +22,18 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Controle de Pedidos',
+  title: 'GCode-S - Controle de Pedidos',
   description: 'Sistema de controle de pedidos local',
-  generator: 'v0.app',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Pedidos',
+    title: 'GCode-S',
   },
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/logo.png',
+    apple: '/logo.png',
   },
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

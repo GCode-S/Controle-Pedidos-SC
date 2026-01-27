@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Pencil, Trash2, Check, X, Package, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, Package, ChevronDown, ChevronUp, Search } from 'lucide-react'
 import type { Produto } from '@/lib/db'
 
 const UNIDADES = [
@@ -26,6 +26,7 @@ function ProdutosContent() {
   const [expandedFornecedores, setExpandedFornecedores] = useState<Set<number>>(
     fornecedorIdParam ? new Set([Number(fornecedorIdParam)]) : new Set()
   )
+  const [searchTerm, setSearchTerm] = useState('')
   
   const [newProduct, setNewProduct] = useState({
     nome: '',
@@ -37,15 +38,26 @@ function ProdutosContent() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingProduct, setEditingProduct] = useState<Partial<Produto>>({})
 
+  const sortedFornecedores = useMemo(() => {
+    return [...fornecedores].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+  }, [fornecedores])
+
   const produtosByFornecedor = useMemo(() => {
     const map = new Map<number, Produto[]>()
     for (const produto of produtos) {
+      if (searchTerm && !produto.nome.toLowerCase().includes(searchTerm.toLowerCase())) {
+        continue
+      }
       const list = map.get(produto.idFornecedor) || []
       list.push(produto)
       map.set(produto.idFornecedor, list)
     }
+    // Sort products alphabetically within each supplier
+    for (const [key, value] of map) {
+      map.set(key, value.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')))
+    }
     return map
-  }, [produtos])
+  }, [produtos, searchTerm])
 
   const toggleFornecedor = (id: number) => {
     setExpandedFornecedores(prev => {
@@ -139,7 +151,7 @@ function ProdutosContent() {
                 <SelectValue placeholder="Selecione o fornecedor" />
               </SelectTrigger>
               <SelectContent>
-                {fornecedores.map((f) => (
+                {sortedFornecedores.map((f) => (
                   <SelectItem key={f.id} value={String(f.id)} className="text-base sm:text-sm">
                     {f.nome}
                   </SelectItem>
@@ -200,7 +212,17 @@ function ProdutosContent() {
         </CardContent>
       </Card>
 
-      {fornecedores.length === 0 ? (
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Pesquisar produtos..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="h-11 pl-10 text-base sm:h-10 sm:text-sm"
+        />
+      </div>
+
+      {sortedFornecedores.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center px-4 py-10 sm:py-12">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
@@ -214,9 +236,12 @@ function ProdutosContent() {
         </Card>
       ) : (
         <div className="space-y-3 sm:space-y-4">
-          {fornecedores.map((fornecedor) => {
+          {sortedFornecedores.map((fornecedor) => {
             const produtosList = produtosByFornecedor.get(fornecedor.id!) || []
             const isExpanded = expandedFornecedores.has(fornecedor.id!)
+            const totalProdutos = produtos.filter(p => p.idFornecedor === fornecedor.id).length
+            
+            if (searchTerm && produtosList.length === 0) return null
             
             return (
               <Card key={fornecedor.id} className="overflow-hidden">
@@ -231,7 +256,9 @@ function ProdutosContent() {
                     </div>
                     <div>
                       <h3 className="text-sm font-medium text-foreground sm:text-base">{fornecedor.nome}</h3>
-                      <p className="text-xs text-muted-foreground sm:text-sm">{produtosList.length} produtos</p>
+                      <p className="text-xs text-muted-foreground sm:text-sm">
+                        {searchTerm ? `${produtosList.length} encontrado(s)` : `${totalProdutos} produtos`}
+                      </p>
                     </div>
                   </div>
                   {isExpanded ? (
@@ -245,7 +272,7 @@ function ProdutosContent() {
                   <div className="border-t border-border">
                     {produtosList.length === 0 ? (
                       <div className="px-4 py-6 text-center text-sm text-muted-foreground">
-                        Nenhum produto cadastrado para este fornecedor
+                        {searchTerm ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado para este fornecedor'}
                       </div>
                     ) : (
                       <div className="divide-y divide-border">

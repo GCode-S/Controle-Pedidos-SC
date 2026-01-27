@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Pencil, Trash2, Check, X, Users, Package, ChevronRight } from 'lucide-react'
+import { Plus, Pencil, Trash2, Check, X, Users, Package, ChevronRight, Search } from 'lucide-react'
 import Link from 'next/link'
 
 export default function FornecedoresPage() {
@@ -13,6 +13,13 @@ export default function FornecedoresPage() {
   const [newName, setNewName] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingName, setEditingName] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filteredFornecedores = useMemo(() => {
+    return fornecedores
+      .filter(f => f.nome.toLowerCase().includes(searchTerm.toLowerCase()))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+  }, [fornecedores, searchTerm])
 
   const handleAdd = async () => {
     if (newName.trim()) {
@@ -85,21 +92,33 @@ export default function FornecedoresPage() {
         </CardContent>
       </Card>
 
-      {fornecedores.length === 0 ? (
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Pesquisar fornecedores..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="h-11 pl-10 text-base sm:h-10 sm:text-sm"
+        />
+      </div>
+
+      {filteredFornecedores.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center px-4 py-10 sm:py-12">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Users className="h-6 w-6 text-muted-foreground" />
             </div>
-            <h3 className="mt-4 text-base font-medium text-foreground sm:text-lg">Nenhum fornecedor</h3>
+            <h3 className="mt-4 text-base font-medium text-foreground sm:text-lg">
+              {searchTerm ? 'Nenhum fornecedor encontrado' : 'Nenhum fornecedor'}
+            </h3>
             <p className="mt-1 text-center text-sm text-muted-foreground">
-              Adicione seu primeiro fornecedor para comecar
+              {searchTerm ? 'Tente uma busca diferente' : 'Adicione seu primeiro fornecedor para comecar'}
             </p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0 lg:grid-cols-3">
-          {fornecedores.map((fornecedor) => (
+          {filteredFornecedores.map((fornecedor) => (
             <Card 
               key={fornecedor.id} 
               className="transition-all duration-200 hover:border-primary/50 active:scale-[0.98] sm:hover:shadow-md"
