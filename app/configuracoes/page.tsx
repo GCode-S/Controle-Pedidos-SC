@@ -186,18 +186,19 @@ export default function ConfiguracoesPage() {
       </div>
 
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="mx-4 max-w-xl rounded-lg sm:mx-auto sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-lg">Importar Dados</DialogTitle>
-            <DialogDescription className="text-sm">
+        <DialogContent className="mx-2 w-[calc(100%-1rem)] max-w-sm rounded-lg sm:mx-4 sm:w-auto sm:max-w-lg md:max-w-2xl p-3 sm:p-4 md:p-6">
+          <DialogHeader className="space-y-1.5 sm:space-y-2">
+            <DialogTitle className="text-base sm:text-lg md:text-xl">Importar Dados</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm md:text-base">
               Revise os dados antes de importar. Esta acao substituira todos os dados existentes.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+
+          <div className="space-y-2.5 py-3 sm:space-y-3 sm:py-4 md:space-y-4 overflow-hidden">
             {importError && (
-              <div className="flex items-center gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-xs text-destructive sm:text-sm">
-                <AlertTriangle className="h-4 w-4 flex-shrink-0" />
-                {importError}
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/50 bg-destructive/10 p-2 sm:p-3">
+                <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <span className="text-xs sm:text-sm md:text-base text-destructive break-words">{importError}</span>
               </div>
             )}
             <Textarea
@@ -206,22 +207,23 @@ export default function ConfiguracoesPage() {
                 setImportJson(e.target.value)
                 setImportError('')
               }}
-              className="h-48 font-mono text-xs sm:h-64 sm:text-sm"
+              className="min-h-40 max-h-60 sm:max-h-80 md:max-h-96 font-mono text-xs sm:text-sm md:text-base resize-none w-full"
               placeholder="Cole o JSON aqui..."
             />
           </div>
-          <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-2">
+
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:gap-2.5 md:gap-3">
             <Button 
               variant="outline" 
               onClick={() => setShowImportDialog(false)}
-              className="h-11 w-full text-base sm:h-10 sm:w-auto sm:text-sm"
+              className="h-9 w-full text-xs sm:h-9 sm:w-auto sm:text-sm md:h-10 md:text-base"
             >
               Cancelar
             </Button>
             <Button 
               onClick={handleImport} 
               disabled={!importJson.trim()}
-              className="h-11 w-full text-base sm:h-10 sm:w-auto sm:text-sm"
+              className="h-9 w-full text-xs sm:h-9 sm:w-auto sm:text-sm md:h-10 md:text-base"
             >
               Importar
             </Button>

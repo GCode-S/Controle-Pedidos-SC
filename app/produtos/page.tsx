@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, Suspense } from 'react'
+import { useState, useMemo, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
@@ -22,7 +22,7 @@ const UNIDADES = [
 function ProdutosContent() {
   const searchParams = useSearchParams()
   const fornecedorIdParam = searchParams.get('fornecedor')
-  
+
   const { fornecedores, produtos, loading, addProduto, updateProduto, deleteProduto } = useStore()
   const [selectedFornecedor, setSelectedFornecedor] = useState<string>(fornecedorIdParam || '')
   const [expandedFornecedores, setExpandedFornecedores] = useState<Set<number>>(
@@ -39,6 +39,7 @@ function ProdutosContent() {
   
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingProduct, setEditingProduct] = useState<Partial<Produto>>({})
+  const scrollPositionRef = useRef<number>(0)
 
   const sortedFornecedores = useMemo(() => {
     return [...fornecedores].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
@@ -101,14 +102,30 @@ function ProdutosContent() {
 
   const handleSaveEdit = async () => {
     if (editingId && editingProduct.nome?.trim()) {
-      await updateProduto(editingId, {
+      try{
+        scrollPositionRef.current = window.scrollY
+
+        const originalScrollBehavior = document.documentElement.style.scrollBehavior
+        document.documentElement.style.scrollBehavior = 'auto'
+
+        await updateProduto(editingId, {
         nome: editingProduct.nome.trim(),
         quantidade: Number(editingProduct.quantidade) || 0,
         valorUnitario: Number(editingProduct.valorUnitario) || 0,
         unidade: editingProduct.unidade
-      })
-      setEditingId(null)
-      setEditingProduct({})
+        })
+        setEditingId(null)
+        setEditingProduct({})
+
+        requestAnimationFrame(() =>{
+          window.scrollTo(0, scrollPositionRef.current)
+          document.documentElement.style.scrollBehavior = originalScrollBehavior
+        })
+      }catch (error){
+        console.error('Erro ao salvar produto: ', error)
+      }
+
+     
     }
   }
 

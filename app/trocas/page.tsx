@@ -116,14 +116,14 @@ export default function TrocasPage() {
                 <CardContent className="p-0">
                   <div className="divide-y divide-border">
                     {produtosList.map((produto) => (
-                      <div key={produto.id} className="flex items-center justify-between gap-3 p-3 sm:p-4">
+                      <div key={produto.id} className="block items-center justify-between gap-3 p-3 sm:p-4">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
                           <p className="text-xs text-muted-foreground sm:text-sm">
                             {formatCurrency(produto.valorUnitario)} / {produto.unidade}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex justify-center items-center gap-2 p-2">
                           <div className="flex items-center">
                             <Button
                               size="icon"

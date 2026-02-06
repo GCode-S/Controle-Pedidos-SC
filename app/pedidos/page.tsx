@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,6 +27,8 @@ export default function PedidosPage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingQtd, setEditingQtd] = useState<string | number>(0)
   const [editingValor, setEditingValor] = useState<string | number>(0)
+  const scrollPositionRef = useRef<number>(0)
+  const editingItemRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!selectedFornecedorId && fornecedores.length > 0) {
@@ -80,13 +82,34 @@ export default function PedidosPage() {
 
   const handleSaveQuickEdit = async () => {
     if (editingId) {
-      await updateProduto(editingId, { 
-        quantidade: Math.max(0, editingQtd as number),
-        valorUnitario: Math.max(0, editingValor as number)
-
-        // aqui foi adicionado as number
-      })
-      setEditingId(null)
+      try {
+        // Salvar posição do scroll ANTES de qualquer estado mudar
+        scrollPositionRef.current = window.scrollY
+        
+        // Desabilitar scroll events temporariamente para evitar conflitos
+        const originalScrollBehavior = document.documentElement.style.scrollBehavior
+        document.documentElement.style.scrollBehavior = 'auto'
+        
+        // Fazer update - o estado será atualizado mas não vai causar re-render visual abrupto
+        await updateProduto(editingId, { 
+          quantidade: Math.max(0, editingQtd as number),
+          valorUnitario: Math.max(0, editingValor as number)
+        })
+        
+        // Fechar editor imediatamente (sem esperar render)
+        setEditingId(null)
+        
+        // Restaurar scroll de forma sincronizada com o navegador
+        if (editingItemRef.current) {
+          const element = editingItemRef.current
+          requestAnimationFrame(() => {
+            window.scrollTo(0, scrollPositionRef.current)
+            document.documentElement.style.scrollBehavior = originalScrollBehavior
+          })
+        }
+      } catch (error) {
+        console.error('Erro ao salvar produto:', error)
+      }
     }
   }
 
@@ -95,8 +118,22 @@ export default function PedidosPage() {
   }
 
   const handleQuickQtdChange = async (id: number, currentQtd: number, delta: number) => {
-    const newQtd = Math.max(0, currentQtd + delta)
-    await updateProduto(id, { quantidade: newQtd })
+    try {
+      scrollPositionRef.current = window.scrollY
+      const newQtd = Math.max(0, currentQtd + delta)
+      
+      const originalScrollBehavior = document.documentElement.style.scrollBehavior
+      document.documentElement.style.scrollBehavior = 'auto'
+      
+      await updateProduto(id, { quantidade: newQtd })
+      
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPositionRef.current)
+        document.documentElement.style.scrollBehavior = originalScrollBehavior
+      })
+    } catch (error) {
+      console.error('Erro ao atualizar quantidade:', error)
+    }
   }
 
   const handleGeneratePDF = () => {
@@ -313,7 +350,10 @@ export default function PedidosPage() {
             <CardContent className="p-0">
               <div className="divide-y divide-border">
                 {produtosNoPedido.map((produto) => (
-                  <div key={produto.id} className="p-3 sm:p-4">
+                  <div 
+                    key={produto.id} 
+                    ref={editingId === produto.id ? editingItemRef : null}
+                    className="p-3 sm:p-4">
                     {editingId === produto.id ? (
                       <div className="space-y-3">
                         <p className="text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
