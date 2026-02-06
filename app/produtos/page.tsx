@@ -288,7 +288,7 @@ function ProdutosContent() {
                                   value={editingProduct.nome || ''}
                                   onChange={(e) => setEditingProduct(prev => ({ ...prev, nome: e.target.value }))}
                                   placeholder="Nome"
-                                  autoFocus
+                                  // autoFocus
                                   className="h-11 text-base sm:h-10 sm:text-sm"
                                 />
                                 <div className="grid grid-cols-2 gap-3">

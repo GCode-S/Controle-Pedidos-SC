@@ -25,8 +25,8 @@ export default function PedidosPage() {
   const [userName, setUserName] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
-  const [editingQtd, setEditingQtd] = useState<number>(0)
-  const [editingValor, setEditingValor] = useState<number>(0)
+  const [editingQtd, setEditingQtd] = useState<string | number>(0)
+  const [editingValor, setEditingValor] = useState<string | number>(0)
 
   useEffect(() => {
     if (!selectedFornecedorId && fornecedores.length > 0) {
@@ -81,8 +81,10 @@ export default function PedidosPage() {
   const handleSaveQuickEdit = async () => {
     if (editingId) {
       await updateProduto(editingId, { 
-        quantidade: Math.max(0, editingQtd),
-        valorUnitario: Math.max(0, editingValor)
+        quantidade: Math.max(0, editingQtd as number),
+        valorUnitario: Math.max(0, editingValor as number)
+
+        // aqui foi adicionado as number
       })
       setEditingId(null)
     }
@@ -320,8 +322,19 @@ export default function PedidosPage() {
                             <label className="mb-1 block text-xs text-muted-foreground">Quantidade</label>
                             <Input
                               type="number"
+                              inputMode="decimal"
                               value={editingQtd}
-                              onChange={(e) => setEditingQtd(Number(e.target.value))}
+                              // onChange={(e) => setEditingQtd(Number(e.target.value))}
+                              onChange={(e) => setEditingQtd(e.target.value)}
+                              onBlur={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      if (!val) {
+                                         setEditingQtd(0);
+                                        return;
+                                      }
+                                      
+                                      setEditingQtd(val);
+                                    }}
                               className="h-11 text-base sm:h-10 sm:text-sm"
                             />
                           </div>
@@ -330,8 +343,18 @@ export default function PedidosPage() {
                             <Input
                               type="number"
                               step="0.01"
+                              inputMode="decimal"
                               value={editingValor}
-                              onChange={(e) => setEditingValor(Number(e.target.value))}
+                              onChange={(e) => setEditingValor(e.target.value)}
+                              onBlur={(e) => {
+                                      const val = parseFloat(e.target.value);
+                                      if (!val) {
+                                         setEditingValor(0);
+                                        return;
+                                      }
+                                      
+                                      setEditingValor(val);
+                                    }}
                               className="h-11 text-base sm:h-10 sm:text-sm"
                             />
                           </div>
@@ -348,7 +371,7 @@ export default function PedidosPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="block items-center justify-center gap-2">
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
                           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground sm:text-sm">
@@ -356,7 +379,7 @@ export default function PedidosPage() {
                             <span>{formatCurrency(produto.valorUnitario)}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-8 p-4">
                           <div className="flex items-center">
                             <Button
                               size="icon"
