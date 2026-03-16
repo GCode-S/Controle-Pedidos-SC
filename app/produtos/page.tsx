@@ -27,7 +27,7 @@ function ProdutosContent() {
   const searchParams = useSearchParams()
   const fornecedorIdParam = searchParams.get('fornecedor')
 
-  const { fornecedores, produtos, loading, addFornecedor, addProduto, updateProduto, deleteProduto, limparPedidoByFornecedor } = useStore()
+  const { fornecedores, produtos, loading, addFornecedor, updateFornecedor, addProduto, updateProduto, deleteProduto, limparPedidoByFornecedor } = useStore()
   const [selectedFornecedor, setSelectedFornecedor] = useState<string>(fornecedorIdParam || '')
   const [expandedFornecedor, setExpandedFornecedor] = useState<number | null>(
     fornecedorIdParam ? Number(fornecedorIdParam) : null
@@ -35,6 +35,7 @@ function ProdutosContent() {
   const [showCreateProductDialog, setShowCreateProductDialog] = useState(false)
   const [createFornecedorId, setCreateFornecedorId] = useState<number | null>(null)
   const [showCreateFornecedorDialog, setShowCreateFornecedorDialog] = useState(false)
+  const [editingFornecedorId, setEditingFornecedorId] = useState<number | null>(null)
   const [newFornecedorNome, setNewFornecedorNome] = useState('')
   const [showNameDialog, setShowNameDialog] = useState(false)
   const [userName, setUserName] = useState('')
@@ -56,12 +57,23 @@ function ProdutosContent() {
     return [...fornecedores].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
   }, [fornecedores])
 
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase()
+
+  const fornecedoresBuscaPorNome = useMemo(() => {
+    if (!normalizedSearchTerm) return new Set<number>()
+
+    return new Set(
+      fornecedores
+        .filter((fornecedor) => fornecedor.nome.toLowerCase().includes(normalizedSearchTerm))
+        .map((fornecedor) => fornecedor.id!)
+    )
+  }, [fornecedores, normalizedSearchTerm])
+
+  const hasFornecedorNomeMatch = normalizedSearchTerm.length > 0 && fornecedoresBuscaPorNome.size > 0
+
   const produtosByFornecedor = useMemo(() => {
     const map = new Map<number, Produto[]>()
     for (const produto of produtos) {
-      if (searchTerm && !produto.nome.toLowerCase().includes(searchTerm.toLowerCase())) {
-        continue
-      }
       const list = map.get(produto.idFornecedor) || []
       list.push(produto)
       map.set(produto.idFornecedor, list)
@@ -71,7 +83,7 @@ function ProdutosContent() {
       map.set(key, value.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')))
     }
     return map
-  }, [produtos, searchTerm])
+  }, [produtos])
 
   const toggleFornecedor = (id: number) => {
     setExpandedFornecedor((prev) => (prev === id ? null : id))
@@ -145,15 +157,28 @@ function ProdutosContent() {
   const handleCreateFornecedorDialogChange = (open: boolean) => {
     setShowCreateFornecedorDialog(open)
     if (!open) {
+      setEditingFornecedorId(null)
       setNewFornecedorNome('')
     }
   }
 
-  const handleAddFornecedor = async () => {
+  const handleOpenEditFornecedorDialog = (fornecedorId: number, fornecedorNome: string) => {
+    setEditingFornecedorId(fornecedorId)
+    setNewFornecedorNome(fornecedorNome)
+    setShowCreateFornecedorDialog(true)
+  }
+
+  const handleSaveFornecedor = async () => {
     if (!newFornecedorNome.trim()) return
 
-    await addFornecedor(newFornecedorNome.trim())
+    if (editingFornecedorId) {
+      await updateFornecedor(editingFornecedorId, newFornecedorNome.trim())
+    } else {
+      await addFornecedor(newFornecedorNome.trim())
+    }
+
     setShowCreateFornecedorDialog(false)
+    setEditingFornecedorId(null)
     setNewFornecedorNome('')
   }
 
@@ -284,7 +309,14 @@ function ProdutosContent() {
       </div>
 
 
-      <Button onClick={() => setShowCreateFornecedorDialog(true)} className="mb-4">
+      <Button
+        onClick={() => {
+          setEditingFornecedorId(null)
+          setNewFornecedorNome('')
+          setShowCreateFornecedorDialog(true)
+        }}
+        className="mb-4"
+      >
         <Plus className="h-4 w-4" />
         <span className=" sm:inline">Adicionar Fornecedor</span>
       </Button>
@@ -293,7 +325,7 @@ function ProdutosContent() {
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Pesquisar produtos"
+          placeholder="Pesquisar..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="h-11 pl-10 text-base sm:h-10 sm:text-sm"
@@ -318,41 +350,65 @@ function ProdutosContent() {
             .filter(f => !selectedFornecedor || f.id === Number(selectedFornecedor))
             .map((fornecedor) => {
             const produtosList = produtosByFornecedor.get(fornecedor.id!) || []
-            const produtosListFiltrados = produtoFilterMode === 'with-quantity'
+            let produtosListFiltrados = produtoFilterMode === 'with-quantity'
               ? produtosList.filter((produto) => produto.quantidade > 0)
               : produtosList
+            const isFornecedorNomeMatch = hasFornecedorNomeMatch && fornecedoresBuscaPorNome.has(fornecedor.id!)
+
+            if (normalizedSearchTerm) {
+              if (hasFornecedorNomeMatch) {
+                if (!isFornecedorNomeMatch) return null
+              } else {
+                produtosListFiltrados = produtosListFiltrados.filter((produto) =>
+                  produto.nome.toLowerCase().includes(normalizedSearchTerm)
+                )
+              }
+            }
+
             const isExpanded = expandedFornecedor === fornecedor.id
             const totalProdutos = produtos.filter(p => p.idFornecedor === fornecedor.id).length
+            const isFornecedorProdutoMatch = normalizedSearchTerm.length > 0 && !hasFornecedorNomeMatch && produtosListFiltrados.length > 0
             
-            if (searchTerm && produtosListFiltrados.length === 0) return null
+            if (normalizedSearchTerm && produtosListFiltrados.length === 0) return null
             
             return (
               <Card key={fornecedor.id} className="overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => toggleFornecedor(fornecedor.id!)}
-                  className="flex w-full items-center justify-between p-3 text-left transition-colors hover:bg-accent/50 active:bg-accent sm:p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:h-10 sm:w-10">
-                      <Package className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
+                <div className="flex items-center gap-2 p-3 sm:p-4">
+                  <button
+                    type="button"
+                    onClick={() => toggleFornecedor(fornecedor.id!)}
+                    className="flex flex-1 items-center justify-between rounded-md text-left transition-colors hover:bg-accent/50 active:bg-accent"
+                  >
+                    <div className="flex items-center gap-3 p-1">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:h-10 sm:w-10">
+                        <Package className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
+                      </div>
+                      <div>
+                        <h3 className={`text-sm font-medium sm:text-xl ${isFornecedorNomeMatch || isFornecedorProdutoMatch ? 'text-destructive' : 'text-foreground'}`}>{fornecedor.nome}</h3>
+                        <p className="text-xs text-muted-foreground sm:text-sm">
+                          {(normalizedSearchTerm || produtoFilterMode === 'with-quantity')
+                            ? `${produtosListFiltrados.length} encontrado(s)`
+                            : `${totalProdutos} produtos`}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-foreground sm:text-xl">{fornecedor.nome}</h3>
-                      <p className="text-xs text-muted-foreground sm:text-sm">
-                        {(searchTerm || produtoFilterMode === 'with-quantity')
-                          ? `${produtosListFiltrados.length} encontrado(s)`
-                          : `${totalProdutos} produtos`}
-                      </p>
-                    </div>
-                    
-                  </div>
-                  {isExpanded ? (
-                    <ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
-                  )}
-                </button>
+                    {isExpanded ? (
+                      <ChevronUp className="h-5 w-5 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
+                    )}
+                  </button>
+
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleOpenEditFornecedorDialog(fornecedor.id!, fornecedor.nome)}
+                    className="h-10 w-10 shrink-0 sm:h-9 sm:w-9"
+                    aria-label={`Editar fornecedor ${fornecedor.nome}`}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
                 
                 {isExpanded && (
                   <div className="border-t border-border px-3 py-2 sm:px-4 sm:py-3">
@@ -419,7 +475,7 @@ function ProdutosContent() {
                       <div className="px-4 py-6 text-center text-sm text-muted-foreground">
                         {produtoFilterMode === 'with-quantity'
                           ? 'Nenhum produto com quantidade maior que 0'
-                          : searchTerm
+                          : normalizedSearchTerm
                             ? 'Nenhum produto encontrado'
                             : 'Nenhum produto cadastrado para este fornecedor'}
                       </div>
@@ -483,7 +539,7 @@ function ProdutosContent() {
                               <div className="space-y-3">
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-medium text-foreground sm:text-base">{produto.nome}</p>
+                                    <p className={`truncate text-sm font-medium sm:text-base ${normalizedSearchTerm && !hasFornecedorNomeMatch && produto.nome.toLowerCase().includes(normalizedSearchTerm) ? 'text-destructive' : 'text-foreground'}`}>{produto.nome}</p>
                                     <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
                                       Unitário: <span className="font-medium text-foreground">{formatCurrency(produto.valorUnitario)}</span>
                                     </p>
@@ -621,9 +677,13 @@ function ProdutosContent() {
       <Dialog open={showCreateFornecedorDialog} onOpenChange={handleCreateFornecedorDialogChange}>
         <DialogContent className="mx-2 w-[calc(100%-1rem)] max-w-sm rounded-lg p-3 sm:mx-4 sm:w-auto sm:max-w-lg sm:p-4 md:max-w-xl md:p-6">
           <DialogHeader className="space-y-1.5 sm:space-y-2">
-            <DialogTitle className="text-base sm:text-lg md:text-xl">Novo fornecedor</DialogTitle>
+            <DialogTitle className="text-base sm:text-lg md:text-xl">
+              {editingFornecedorId ? 'Editar fornecedor' : 'Novo fornecedor'}
+            </DialogTitle>
             <DialogDescription className="text-xs sm:text-sm md:text-base">
-              Digite o nome para criar um novo fornecedor.
+              {editingFornecedorId
+                ? 'Altere o nome do fornecedor.'
+                : 'Digite o nome para criar um novo fornecedor.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -632,7 +692,7 @@ function ProdutosContent() {
               placeholder="Nome do fornecedor"
               value={newFornecedorNome}
               onChange={(e) => setNewFornecedorNome(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddFornecedor()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSaveFornecedor()}
               autoFocus
               className="h-11 text-base sm:h-10 sm:text-sm"
             />
@@ -647,11 +707,11 @@ function ProdutosContent() {
               Cancelar
             </Button>
             <Button
-              onClick={handleAddFornecedor}
+              onClick={handleSaveFornecedor}
               disabled={!newFornecedorNome.trim()}
               className="h-9 w-full text-xs sm:h-10 sm:w-auto sm:text-sm"
             >
-              Adicionar fornecedor
+              {editingFornecedorId ? 'Salvar fornecedor' : 'Adicionar fornecedor'}
             </Button>
           </DialogFooter>
         </DialogContent>
