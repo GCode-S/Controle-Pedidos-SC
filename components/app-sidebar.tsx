@@ -4,14 +4,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Package, ShoppingCart, Users, RefreshCw, Settings, Sun, Moon } from 'lucide-react'
+import { Package, RefreshCw, Settings, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 
 const navItems = [
-  { href: '/', label: 'Fornecedores', icon: Users },
-  { href: '/produtos', label: 'Produtos', icon: Package },
-  { href: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
+  // { href: '/', label: 'Fornecedores', icon: Users },
+  { href: '/produtos', label: 'Controle', icon: Package },
+  // { href: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { href: '/trocas', label: 'Trocas', icon: RefreshCw },
   { href: '/configuracoes', label: 'Configuracoes', icon: Settings },
 ]

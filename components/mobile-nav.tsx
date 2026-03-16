@@ -3,12 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Package, ShoppingCart, Users, RefreshCw, Settings } from 'lucide-react'
+import { Package, RefreshCw, Settings } from 'lucide-react'
 
 const navItems = [
-  { href: '/', label: 'Fornecedores', icon: Users },
-  { href: '/produtos', label: 'Produtos', icon: Package },
-  { href: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
+  // { href: '/', label: 'Fornecedores', icon: Users },
+  { href: '/produtos', label: 'Controle', icon: Package },
+  // { href: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { href: '/trocas', label: 'Trocas', icon: RefreshCw },
   { href: '/configuracoes', label: 'Config', icon: Settings },
 ]
