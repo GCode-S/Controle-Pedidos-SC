@@ -27,7 +27,7 @@ function ProdutosContent() {
   const searchParams = useSearchParams()
   const fornecedorIdParam = searchParams.get('fornecedor')
 
-  const { fornecedores, produtos, loading, addFornecedor, updateFornecedor, addProduto, updateProduto, deleteProduto, limparPedidoByFornecedor } = useStore()
+  const { fornecedores, produtos, loading, addFornecedor, updateFornecedor, deleteFornecedor, addProduto, updateProduto, deleteProduto, limparPedidoByFornecedor } = useStore()
   const [selectedFornecedor, setSelectedFornecedor] = useState<string>(fornecedorIdParam || '')
   const [expandedFornecedor, setExpandedFornecedor] = useState<number | null>(
     fornecedorIdParam ? Number(fornecedorIdParam) : null
@@ -36,6 +36,7 @@ function ProdutosContent() {
   const [createFornecedorId, setCreateFornecedorId] = useState<number | null>(null)
   const [showCreateFornecedorDialog, setShowCreateFornecedorDialog] = useState(false)
   const [editingFornecedorId, setEditingFornecedorId] = useState<number | null>(null)
+  const [deletingFornecedorId, setDeletingFornecedorId] = useState<number | null>(null)
   const [newFornecedorNome, setNewFornecedorNome] = useState('')
   const [showNameDialog, setShowNameDialog] = useState(false)
   const [userName, setUserName] = useState('')
@@ -166,6 +167,12 @@ function ProdutosContent() {
     setEditingFornecedorId(fornecedorId)
     setNewFornecedorNome(fornecedorNome)
     setShowCreateFornecedorDialog(true)
+  }
+
+  const handleConfirmDeleteFornecedor = async () => {
+    if (!deletingFornecedorId) return
+    await deleteFornecedor(deletingFornecedorId)
+    setDeletingFornecedorId(null)
   }
 
   const handleSaveFornecedor = async () => {
@@ -408,6 +415,15 @@ function ProdutosContent() {
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setDeletingFornecedorId(fornecedor.id!)}
+                    className="h-10 w-10 shrink-0 hover:text-destructive sm:h-9 sm:w-9"
+                    aria-label={`Excluir fornecedor ${fornecedor.nome}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
                 
                 {isExpanded && (
@@ -601,6 +617,34 @@ function ProdutosContent() {
           })}
         </div>
       )}
+
+      <Dialog open={deletingFornecedorId !== null} onOpenChange={(open) => { if (!open) setDeletingFornecedorId(null) }}>
+        <DialogContent className="mx-2 w-[calc(100%-1rem)] max-w-sm rounded-lg p-3 sm:mx-4 sm:w-auto sm:max-w-lg sm:p-4 md:max-w-xl md:p-6">
+          <DialogHeader className="space-y-1.5 sm:space-y-2">
+            <DialogTitle className="text-base sm:text-lg md:text-xl">Excluir fornecedor</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm md:text-base">
+              Tem certeza que deseja excluir o fornecedor <strong>{fornecedores.find((f) => f.id === deletingFornecedorId)?.nome}</strong>?{' '}
+              Todos os seus produtos também serão excluídos. Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:gap-2.5 md:gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setDeletingFornecedorId(null)}
+              className="h-9 w-full bg-transparent text-xs sm:h-10 sm:w-auto sm:text-sm"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDeleteFornecedor}
+              className="h-9 w-full text-xs sm:h-10 sm:w-auto sm:text-sm"
+            >
+              Excluir fornecedor
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showCreateProductDialog} onOpenChange={handleCreateDialogChange}>
         <DialogContent className="mx-2 w-[calc(100%-1rem)] max-w-sm rounded-lg p-3 sm:mx-4 sm:w-auto sm:max-w-lg sm:p-4 md:max-w-xl md:p-6">
